@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   Animated,
   Image,
@@ -13,8 +13,8 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import ProfileLogo from '../../assests/images/logo.png';
 import fonts from '../../assests/fonts';
 import {HorizontalScale} from '../responsive/Metrics';
-import { dynamicFontSize } from './Responsive';
-import {useNavigation } from '@react-navigation/native';
+import {dynamicFontSize} from './Responsive';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HeaderSection = props => {
@@ -23,7 +23,7 @@ const HeaderSection = props => {
   const navigation = useNavigation();
 
   const fadeIn = () => {
-    setProfile(true)
+    setProfile(true);
     Animated.timing(opacity, {
       toValue: 1,
       duration: 500,
@@ -39,15 +39,29 @@ const HeaderSection = props => {
     }).start(() => setProfile(false)); // After the fade-out animation completes, set profile to false
   };
 
-  const signOut = async()=>{
-    console.log("called");
-    await AsyncStorage.removeItem('loggedIn')
-    navigation.navigate('Login')
-  }
+  useEffect(()=>{
+    const getValue = async()=>{
+      const value = await AsyncStorage.getItem('userPassword')
+      console.log(value);
+    }
+    getValue()
+  },[])
+  const signOut = async () => {
+    try {
+      await AsyncStorage.removeItem('loggedIn')
+      await AsyncStorage.removeItem('userPassword')
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error(`Error Throws: ${keys}`);
+    }
+  };
 
   return (
     <View style={headerStyle.header_container}>
-      <TouchableOpacity onPress={()=>navigation.navigate('MainMenu')} activeOpacity={0.9} style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('MainMenu')}
+        activeOpacity={0.9}
+        style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
         <AntDesign
           name="left"
           color="#FFFFFF"
@@ -104,19 +118,45 @@ const HeaderSection = props => {
 
         {profile && (
           <Animated.View style={[headerStyle.ins_profile_container, {opacity}]}>
-            <TouchableOpacity onPress={()=>navigation.navigate('MainMenu')} style={[headerStyle.ins_profile_icons, {marginBottom: 15}]}>
-              <Entypo name="home" size={10} marginRight={10} style={{color: '#727272'}} />
+            <TouchableOpacity
+              onPress={() => {fadeOut(); navigation.navigate('MainMenu')}}
+              style={[headerStyle.ins_profile_icons, {marginBottom: 15}]}>
+              <Entypo
+                name="home"
+                size={10}
+                marginRight={10}
+                style={{color: '#727272'}}
+              />
               <Text style={{color: '#727272'}}>Home page</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={()=>navigation.navigate('UpdatePassword')} style={[headerStyle.ins_profile_icons, {marginBottom: 15}]}>
-              <MaterialIcons name="password" size={10} marginRight={10} style={{color: '#727272'}} />
+            <TouchableOpacity
+              onPress={() => {fadeOut(); navigation.navigate('UpdatePassword')}}
+              style={[headerStyle.ins_profile_icons, {marginBottom: 15}]}>
+              <MaterialIcons
+                name="password"
+                size={10}
+                marginRight={10}
+                style={{color: '#727272'}}
+              />
               <Text style={{color: '#727272'}}>Change Password</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={headerStyle.ins_profile_icons} onPress={()=>{fadeOut(), signOut()}}>
-              <Entypo name="log-out" size={12} marginRight={10} style={{color: '#727272'}} />
-              <Text style={{marginRight: 5, paddingBottom: 10, color: '#727272'}}>Sign out</Text>
+            <TouchableOpacity
+              style={headerStyle.ins_profile_icons}
+              onPress={() => {
+                fadeOut(), signOut();
+              }}>
+              <Entypo
+                name="log-out"
+                size={12}
+                marginRight={10}
+                style={{color: '#727272'}}
+              />
+              <Text
+                style={{marginRight: 5, paddingBottom: 10, color: '#727272'}}>
+                Sign out
+              </Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -144,7 +184,7 @@ const headerStyle = StyleSheet.create({
     left: -122,
     right: 0,
     borderRadius: 5,
-    padding:5
+    padding: 5,
   },
 
   ins_profile_icons: {

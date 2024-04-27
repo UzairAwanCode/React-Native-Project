@@ -43,7 +43,17 @@ const LoginComponent = props => {
 
   const Login = () => {
     const setData = async () => {
-      await AsyncStorage.setItem('loggedIn', 'true');
+      try{
+        const multipleKeys = [
+          ['loggedIn', 'true'],
+          ['userPassword' , password]
+        ]
+
+        await AsyncStorage.multiSet(multipleKeys)
+      }
+      catch(error){
+        console.error('Error Setting Multiple Items: ', error)
+      }
     };
     if (isChecked) {
       setData();
