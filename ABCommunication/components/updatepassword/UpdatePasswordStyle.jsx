@@ -4,7 +4,7 @@ import {VerticalScale} from '../responsive/Metrics';
 
 export const updatePasswordStyle = StyleSheet.create({
   up_container: {
-    display: 'flex',
+    flex: 1,
   },
 
   up_common_field_style: {
@@ -19,7 +19,7 @@ export const updatePasswordStyle = StyleSheet.create({
     flex: 1,
     backgroundColor: '#A4C9C6',
     width: '100%',
-    alignItems: 'center',
+    // alignItems: 'center',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     marginTop: VerticalScale(40),

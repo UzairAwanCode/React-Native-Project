@@ -1,6 +1,5 @@
 import {
   Alert,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -25,6 +24,8 @@ import {
   VerticalScale,
 } from '../responsive/Metrics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
+import Mailer from 'react-native-mail';
 
 const LoginComponent = props => {
   const userName =
@@ -43,16 +44,15 @@ const LoginComponent = props => {
 
   const Login = () => {
     const setData = async () => {
-      try{
+      try {
         const multipleKeys = [
           ['loggedIn', 'true'],
-          ['userPassword' , password]
-        ]
+          ['userPassword', password],
+        ];
 
-        await AsyncStorage.multiSet(multipleKeys)
-      }
-      catch(error){
-        console.error('Error Setting Multiple Items: ', error)
+        await AsyncStorage.multiSet(multipleKeys);
+      } catch (error) {
+        console.error('Error Setting Multiple Items: ', error);
       }
     };
     if (isChecked) {
@@ -63,16 +63,43 @@ const LoginComponent = props => {
     } else if (userName === checkUserName && password === checkPassword) {
       setCheckUserName('');
       setCheckPassword('');
-      setIsCheck(false)
+      setIsCheck(false);
       navigation.navigate('MainMenu');
     } else {
       Alert.alert('Invalid Username/Password');
     }
   };
 
+  // Inside your LoginComponent component
+  const sendEmail = () => {
+    const userEmail = 'uzairawan253@gmail.com'; // Set the user's email address here
+
+    // Check internet connectivity
+    NetInfo.fetch().then(state => {
+      if (state.isConnected) {
+        // If connected to the internet, send the email
+        Mailer.mail(
+          {
+            subject: 'Password Recovery',
+            recipients: [userEmail],
+            body: `Your password is: ${password}`, // Use the password variable here
+          },
+          (error, event) => {
+            if (error) {
+              Alert.alert('Error', 'Failed to send email');
+            } else {
+              Alert.alert('Success', 'Email sent successfully');
+            }
+          },
+        );
+      } else {
+        Alert.alert('No Internet', 'Please check your internet connection');
+      }
+    });
+  };
+
   return (
-    <View
-      style={[loginComponentStyle.lc_container,]}>
+    <View style={[loginComponentStyle.lc_container]}>
       {/* Heading */}
       <View style={loginComponentStyle.lc_heading_container}>
         <Text
@@ -107,7 +134,7 @@ const LoginComponent = props => {
                 width: '82%',
                 fontFamily: fonts.PoppinsMedium,
                 paddingBottom: VerticalScale(12),
-                color: 'black'
+                color: 'black',
               }}
               placeholder="User Name"
               placeholderTextColor="#727272"
@@ -139,8 +166,8 @@ const LoginComponent = props => {
                 fontFamily: fonts.PoppinsMedium,
                 paddingBottom: VerticalScale(12),
                 marginRight: HorizontalScale(25),
-                position:'relative',
-                color: 'black'
+                position: 'relative',
+                color: 'black',
               }}
               placeholder="Password"
               placeholderTextColor="#727272"
@@ -148,11 +175,23 @@ const LoginComponent = props => {
               onChangeText={text => setCheckPassword(text)}
               secureTextEntry={showPassword}
             />
-            {showPassword?
-              <Entypo onPress={()=>setShowPassword(!showPassword)} name="eye-with-line" color="#727272" size={ModerateScale(15)} style={loginComponentStyle.eye}/>
-              :
-              <Entypo onPress={()=>setShowPassword(!showPassword)} name="eye" color="#727272" size={ModerateScale(15)} style={loginComponentStyle.eye}/>
-            }
+            {showPassword ? (
+              <Entypo
+                onPress={() => setShowPassword(!showPassword)}
+                name="eye-with-line"
+                color="#727272"
+                size={ModerateScale(15)}
+                style={loginComponentStyle.eye}
+              />
+            ) : (
+              <Entypo
+                onPress={() => setShowPassword(!showPassword)}
+                name="eye"
+                color="#727272"
+                size={ModerateScale(15)}
+                style={loginComponentStyle.eye}
+              />
+            )}
           </View>
         </View>
 
@@ -184,11 +223,28 @@ const LoginComponent = props => {
               marginLeft: 10,
               fontFamily: fonts.PoppinsRegular,
               fontSize: ModerateScale(13),
-              color: '#727272'
+              color: '#727272',
             }}>
             Keep Me Signed In
           </Text>
         </View>
+
+        {/* Forget Password */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={loginComponentStyle.forget_password}
+          onPress={sendEmail}
+          >
+          <Text
+            style={{
+              marginLeft: 10,
+              fontFamily: fonts.PoppinsRegular,
+              fontSize: ModerateScale(14),
+              color: '#727272',
+            }}>
+            Forget Password ?
+          </Text>
+        </TouchableOpacity>
 
         {/* Sign In Button */}
         <View style={{display: 'flex', width: wp(80)}}>
@@ -270,6 +326,16 @@ const loginComponentStyle = StyleSheet.create({
     marginBottom: 20,
   },
 
+  forget_password: {
+    width: wp(80),
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    marginBottom: 20,
+  },
+
   signin_button: {
     width: '95%',
     backgroundColor: '#15A196',
@@ -289,12 +355,11 @@ const loginComponentStyle = StyleSheet.create({
   },
 
   eye: {
-    position:'absolute',
+    position: 'absolute',
     right: 10,
     top: 16,
     bottom: 0,
-
-  }
+  },
 });
 
 export default LoginComponent;
