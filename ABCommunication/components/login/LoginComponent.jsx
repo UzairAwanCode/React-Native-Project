@@ -58,6 +58,14 @@ const LoginComponent = props => {
     if (isChecked) {
       setData();
     }
+    else{
+      const savePassword = async()=>{
+        await AsyncStorage.removeItem('userPassword');
+        await AsyncStorage.setItem('userPassword' , password);
+      }
+
+      savePassword()
+    }
     if (checkUserName === '' || checkPassword === '') {
       Alert.alert('Fields Are Empty');
     } else if (userName === checkUserName && password === checkPassword) {
@@ -71,31 +79,37 @@ const LoginComponent = props => {
   };
 
   // Inside your LoginComponent component
-  const sendEmail = () => {
-    const userEmail = 'uzairawan253@gmail.com'; // Set the user's email address here
+  const sendEmail = async () => {
+    const userEmail = 'uzairawan253@gmail.com'; // Replace with the user's email address
 
-    // Check internet connectivity
-    NetInfo.fetch().then(state => {
+    try {
+      // Check internet connectivity
+      const state = await NetInfo.fetch();
       if (state.isConnected) {
-        // If connected to the internet, send the email
-        Mailer.mail(
-          {
-            subject: 'Password Recovery',
-            recipients: [userEmail],
-            body: `Your password is: ${password}`, // Use the password variable here
+        // If connected to the internet, make the HTTP request
+        const response = await fetch('YOUR_BACKEND_API_ENDPOINT', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          (error, event) => {
-            if (error) {
-              Alert.alert('Error', 'Failed to send email');
-            } else {
-              Alert.alert('Success', 'Email sent successfully');
-            }
-          },
-        );
+          body: JSON.stringify({
+            userEmail,
+            password,
+          }),
+        });
+
+        if (response.ok) {
+          Alert.alert('Success', 'Email sent successfully');
+        } else {
+          Alert.alert('Error', 'Failed to send email Net is connected');
+        }
       } else {
         Alert.alert('No Internet', 'Please check your internet connection');
       }
-    });
+    } catch (error) {
+      console.log('Error:', error);
+      Alert.alert('Error', 'Failed to send email Net is not connected');
+    }
   };
 
   return (
@@ -233,8 +247,7 @@ const LoginComponent = props => {
         <TouchableOpacity
           activeOpacity={0.8}
           style={loginComponentStyle.forget_password}
-          onPress={sendEmail}
-          >
+          onPress={sendEmail}>
           <Text
             style={{
               marginLeft: 10,

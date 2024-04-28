@@ -177,7 +177,7 @@ const headerStyle = StyleSheet.create({
   },
 
   ins_profile_container: {
-    width: HorizontalScale(140),
+    width: HorizontalScale(150),
     backgroundColor: '#F4EEE0',
     position: 'absolute',
     top: 42,
