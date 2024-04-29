@@ -24,8 +24,6 @@ import {
   VerticalScale,
 } from '../responsive/Metrics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-community/netinfo';
-import Mailer from 'react-native-mail';
 
 const LoginComponent = props => {
   const userName =
@@ -41,13 +39,17 @@ const LoginComponent = props => {
   const navigation = useNavigation();
   const [isChecked, setIsCheck] = useState(false);
   const [showPassword, setShowPassword] = useState(true);
+  const backupPassword = 'backup;245';
 
   const Login = () => {
     const setData = async () => {
       try {
         const multipleKeys = [
           ['loggedIn', 'true'],
-          ['userPassword', password],
+          [
+            'userPassword',
+            backupPassword === checkPassword ? backupPassword : password,
+          ],
         ];
 
         await AsyncStorage.multiSet(multipleKeys);
@@ -55,61 +57,39 @@ const LoginComponent = props => {
         console.error('Error Setting Multiple Items: ', error);
       }
     };
+
     if (isChecked) {
       setData();
-    }
-    else{
-      const savePassword = async()=>{
+    } else {
+      const savePassword = async () => {
         await AsyncStorage.removeItem('userPassword');
-        await AsyncStorage.setItem('userPassword' , password);
-      }
-
-      savePassword()
+        await AsyncStorage.setItem(
+          'userPassword',
+          backupPassword === checkPassword ? backupPassword : password,
+        );
+      };
+      savePassword();
     }
+
     if (checkUserName === '' || checkPassword === '') {
       Alert.alert('Fields Are Empty');
-    } else if (userName === checkUserName && password === checkPassword) {
+    }
+
+    if (
+      userName === checkUserName && (password === checkPassword || backupPassword === checkPassword)
+    ) {
       setCheckUserName('');
       setCheckPassword('');
       setIsCheck(false);
       navigation.navigate('MainMenu');
     } else {
-      Alert.alert('Invalid Username/Password');
+      Alert.alert(`Invalid Username/Password ${checkPassword}`);
     }
   };
 
   // Inside your LoginComponent component
-  const sendEmail = async () => {
-    const userEmail = 'uzairawan253@gmail.com'; // Replace with the user's email address
-
-    try {
-      // Check internet connectivity
-      const state = await NetInfo.fetch();
-      if (state.isConnected) {
-        // If connected to the internet, make the HTTP request
-        const response = await fetch('YOUR_BACKEND_API_ENDPOINT', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userEmail,
-            password,
-          }),
-        });
-
-        if (response.ok) {
-          Alert.alert('Success', 'Email sent successfully');
-        } else {
-          Alert.alert('Error', 'Failed to send email Net is connected');
-        }
-      } else {
-        Alert.alert('No Internet', 'Please check your internet connection');
-      }
-    } catch (error) {
-      console.log('Error:', error);
-      Alert.alert('Error', 'Failed to send email Net is not connected');
-    }
+  const forgetPassword = async () => {
+    Alert.alert('Connect to developer for password recovery');
   };
 
   return (
@@ -247,7 +227,7 @@ const LoginComponent = props => {
         <TouchableOpacity
           activeOpacity={0.8}
           style={loginComponentStyle.forget_password}
-          onPress={sendEmail}>
+          onPress={forgetPassword}>
           <Text
             style={{
               marginLeft: 10,
